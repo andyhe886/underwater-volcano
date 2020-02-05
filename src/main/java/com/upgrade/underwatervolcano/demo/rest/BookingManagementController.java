@@ -1,17 +1,18 @@
 package com.upgrade.underwatervolcano.demo.rest;
 
-import com.upgrade.underwatervolcano.demo.database.entity.BookingEntity;
 import com.upgrade.underwatervolcano.demo.model.BookingModel;
-import com.upgrade.underwatervolcano.demo.model.request.ModifyBookingModel;
-import com.upgrade.underwatervolcano.demo.model.response.ResponseBookingModel;
+import com.upgrade.underwatervolcano.demo.model.request.RequestModifyBookingModel;
+import com.upgrade.underwatervolcano.demo.model.request.RequestBookingModel;
 import com.upgrade.underwatervolcano.demo.service.BookingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import util.DataValidatorUtil;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 
 @RestController
 public class BookingManagementController {
@@ -24,31 +25,40 @@ public class BookingManagementController {
     }
 
     @PostMapping(value = "/create-booking")
-    public ResponseEntity<String> createBooking(@Valid @RequestBody ResponseBookingModel responseBookingModel) {
+    public ResponseEntity<String> createBooking(@Valid @RequestBody RequestBookingModel requestBookingModel) {
 
+        DataValidatorUtil.validation(requestBookingModel.getArrivalDate(), requestBookingModel.getDepartureDate());
 
-        BookingModel bookingModel = BookingModel.builder().build();
+        String fullName = requestBookingModel.getFullName();
+        String email = requestBookingModel.getEmail();
+        String arrivalDate = requestBookingModel.getArrivalDate();
+        String departureDate = requestBookingModel.getDepartureDate();
 
-        bookingService.createBooking(bookingModel);
-        return ResponseEntity.status(HttpStatus.OK).body("test");
+        BookingModel bookingModel = BookingModel.builder()
+                .fullName(fullName)
+                .email(email)
+                .arrivalDate(LocalDate.parse(arrivalDate))
+                .departureDate(LocalDate.parse(departureDate)).build();
 
-    }
+        String uuid = bookingService.createBooking(bookingModel);
 
-    @GetMapping(value = "/retrieve-booking")
-    public ResponseEntity<BookingEntity> retrieveBooking(@RequestParam(value = "uuid") String uuid) {
-        return ResponseEntity.status(HttpStatus.OK).build();
-
+        return ResponseEntity.status(HttpStatus.OK).body("The booking unique ID: " + uuid);
     }
 
     @PostMapping(value = "/modify-booking")
-    public ResponseEntity<String> modifyBooking(@Valid @RequestBody ModifyBookingModel bookingModel) {
-        return ResponseEntity.status(HttpStatus.OK).build();
+    public ResponseEntity<String> modifyBooking(@Valid @RequestBody RequestModifyBookingModel modifyBookingModel) {
+
+        DataValidatorUtil.validation(modifyBookingModel.getArrivalDate(), modifyBookingModel.getDepartureDate());
+
+        bookingService.modifyBooking(modifyBookingModel);
+        return ResponseEntity.status(HttpStatus.OK).body("Booking has been modified");
 
     }
 
     @PostMapping(value = "/delete-booking")
     public ResponseEntity<String> deleteBooking(@Valid @RequestParam String uuid) {
-        return ResponseEntity.status(HttpStatus.OK).build();
+        bookingService.deleteBooking(uuid);
+        return ResponseEntity.status(HttpStatus.OK).body("Booking has been deleted");
 
     }
 }

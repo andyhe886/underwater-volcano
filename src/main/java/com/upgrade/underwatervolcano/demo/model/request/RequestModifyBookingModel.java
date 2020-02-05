@@ -10,7 +10,7 @@ import javax.validation.constraints.NotBlank;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ModifyBookingModel extends RequestBookingModel {
+public class RequestModifyBookingModel extends RequestBookingModel {
 
     @NotBlank
     @JsonProperty("uuid")

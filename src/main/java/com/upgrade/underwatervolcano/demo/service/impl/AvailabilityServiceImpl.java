@@ -48,7 +48,9 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     private List<LocalDate> searchListOfDatesBooked(LocalDate startDate, LocalDate endDate) {
         List<LocalDate> listOfDatesBooked = new ArrayList<>();
 
-        Iterable<BookingEntity> bookingEntityIterable = bookingsRepository.findBookingEntitiesByDepartureDateLessThanEqualAndArrivalDateGreaterThanEqual(endDate, startDate);
+        Iterable<BookingEntity> bookingEntityIterable = bookingsRepository
+                .findBookingEntitiesByDepartureDateLessThanEqualAndArrivalDateGreaterThanEqual(endDate, startDate);
+
         for (BookingEntity bookingEntity : bookingEntityIterable) {
             LocalDate arrivalDate = bookingEntity.getArrivalDate();
             LocalDate departureDate = bookingEntity.getDepartureDate();
