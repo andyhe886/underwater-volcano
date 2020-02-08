@@ -41,7 +41,7 @@ public class DataValidatorUtil {
     }
 
     public static void checkDatesBookingConstraint(LocalDate startDate, LocalDate endDate) {
-        long days = ChronoUnit.DAYS.between(startDate, endDate);
+        long days = ChronoUnit.DAYS.between(startDate, endDate) + 1;
 
         if (3 < days) {
             throw new IllegalArgumentException("3 days maximum");

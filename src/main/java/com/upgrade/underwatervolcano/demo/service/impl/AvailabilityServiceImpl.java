@@ -39,10 +39,13 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     private List<LocalDate> searchListOfDatesBooked(LocalDate startDate, LocalDate endDate) {
+        LocalDate pastTwoDate = startDate.minusDays(2);
+        LocalDate futureTwoDate = endDate.plusDays(2);
+
         List<LocalDate> listOfDatesBooked = new ArrayList<>();
 
         Iterable<BookingEntity> bookingEntityIterable = bookingsRepository
-                .findBookingEntitiesByDepartureDateLessThanEqualAndArrivalDateGreaterThanEqual(endDate, startDate);
+                .findBookingEntitiesByDepartureDateLessThanEqualAndArrivalDateGreaterThanEqual(futureTwoDate, pastTwoDate);
 
         for (BookingEntity bookingEntity : bookingEntityIterable) {
             LocalDate arrivalDate = bookingEntity.getArrivalDate();

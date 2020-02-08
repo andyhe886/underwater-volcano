@@ -39,8 +39,8 @@ public class BookingServiceImplTest {
         bookingModel = BookingModel.builder()
                 .fullName("John Doe")
                 .email("test@test.com")
-                .arrivalDate(LocalDate.parse("2020-03-01"))
-                .departureDate(LocalDate.parse("2020-03-03"))
+                .arrivalDate(LocalDate.parse("2020-03-09"))
+                .departureDate(LocalDate.parse("2020-03-09"))
                 .build();
 
     }
