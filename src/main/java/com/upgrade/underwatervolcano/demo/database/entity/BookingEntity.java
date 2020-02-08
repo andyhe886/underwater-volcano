@@ -16,6 +16,10 @@ public class BookingEntity {
     @Column(name = "ID", unique = true)
     private int id;
 
+    @Version
+    @Column(name="VERSION")
+    private Long version;
+
     @Column(name="ARRIVAL_DATE")
     private LocalDate arrivalDate;
 
@@ -28,6 +32,7 @@ public class BookingEntity {
     @Column(name="FULL_NAME")
     private String fullName;
 
-    @Column(name="BOOKING_UUID")
+    @Column(name="BOOKING_UUID", unique = true)
     private String bookingUUID;
+
 }

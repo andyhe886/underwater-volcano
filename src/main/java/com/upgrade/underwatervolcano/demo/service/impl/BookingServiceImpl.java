@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,65 +26,106 @@ public class BookingServiceImpl implements BookingService {
 
         LocalDate arrivalDate = bookingModel.getArrivalDate();
         LocalDate departureDate = bookingModel.getDepartureDate();
-        LocalDate pastThreeDate = arrivalDate.minusDays(3);
-        LocalDate futureThreeDate = departureDate.plusDays(3);
 
-        if (bookingsRepository
-                .existsBookingEntityByDepartureDateLessThanEqualAndArrivalDateGreaterThanEqual(departureDate, arrivalDate)) {
+        String uuid;
 
-            throw new IllegalStateException("It's already booked");
-        }
+        synchronized (this) {
 
-        List<BookingEntity> bookingEntityIterable = bookingsRepository
-                .findBookingEntitiesByDepartureDateLessThanEqualAndArrivalDateGreaterThanEqual(futureThreeDate, pastThreeDate);
+            try {
+                boolean isSlotsEmpty = isSlotsEmpty(arrivalDate, departureDate);
 
-        boolean isEmpty = false;
-
-        if (bookingEntityIterable.isEmpty()) {
-            return save(bookingModel);
-        } else {
-            for (BookingEntity bookingEntity : bookingEntityIterable) {
-
-                LocalDate bookedArrivalDate = bookingEntity.getArrivalDate();
-                LocalDate bookedDepartureDate = bookingEntity.getDepartureDate();
-
-                if (arrivalDate.isAfter(bookedDepartureDate) || departureDate.isBefore(bookedArrivalDate)) {
-                    isEmpty = true;
+                if (isSlotsEmpty) {
+                    uuid = save(bookingModel);
+                } else {
+                    throw new IllegalArgumentException("It's already booked, please choose another date(s)");
                 }
+            } catch (Exception e) {
+                throw new IllegalArgumentException(e);
             }
 
-            if(!isEmpty) {
-                throw new IllegalStateException("It's already booked");
-            }
         }
 
-        return save(bookingModel);
+        return uuid;
     }
 
+    @Transactional
     public void modifyBooking(RequestModifyBookingModel requestModifyBookingModel) {
-        String uuid = requestModifyBookingModel.getUuid();
+        LocalDate arrivalDate = LocalDate.parse(requestModifyBookingModel.getArrivalDate());
+        LocalDate departureDate = LocalDate.parse(requestModifyBookingModel.getDepartureDate());
+
         try {
-            BookingEntity bookingEntity = bookingsRepository.findBookingEntitiesByBookingUUID(uuid);
-            bookingEntity.setFullName(requestModifyBookingModel.getFullName());
-            bookingEntity.setEmail(requestModifyBookingModel.getEmail());
-            bookingEntity.setArrivalDate(LocalDate.parse(requestModifyBookingModel.getArrivalDate()));
-            bookingEntity.setDepartureDate(LocalDate.parse(requestModifyBookingModel.getDepartureDate()));
-            bookingsRepository.save(bookingEntity);
+            boolean isSlotsEmpty = isSlotsEmpty(arrivalDate, departureDate);
+
+            if (isSlotsEmpty) {
+                String uuid = requestModifyBookingModel.getUuid();
+                BookingEntity bookingEntity = bookingsRepository.findBookingEntitiesByBookingUUID(uuid);
+
+                if (bookingEntity != null) {
+                    bookingEntity.setFullName(requestModifyBookingModel.getFullName());
+                    bookingEntity.setEmail(requestModifyBookingModel.getEmail());
+                    bookingEntity.setArrivalDate(arrivalDate);
+                    bookingEntity.setDepartureDate(departureDate);
+                    bookingsRepository.save(bookingEntity);
+                } else {
+                    throw new IllegalArgumentException("The booking do not exist");
+                }
+
+            } else {
+                throw new IllegalArgumentException("It's already booked, please choose another date(s)");
+            }
+
         } catch (Exception e) {
-            throw new IllegalStateException("Uh oh");
+            throw new IllegalArgumentException(e);
         }
     }
 
     @Transactional
     public void deleteBooking(String uuid) {
         try {
-            bookingsRepository.deleteBookingEntityByBookingUUID(uuid);
+            BookingEntity bookingEntity = bookingsRepository.findBookingEntitiesByBookingUUID(uuid);
+
+            if (bookingEntity != null) {
+                bookingsRepository.deleteBookingEntityByBookingUUID(uuid);
+            } else {
+                throw new IllegalArgumentException("The booking do not exist");
+            }
         } catch (Exception e) {
-            throw new IllegalStateException("Uh oh");
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    private boolean isSlotsEmpty(LocalDate arrivalDate, LocalDate departureDate) {
+        LocalDate pastTwoDate = arrivalDate.minusDays(2);
+        LocalDate futureTwoDate = departureDate.plusDays(2);
+
+        if (bookingsRepository
+                .existsBookingEntityByDepartureDateLessThanEqualAndArrivalDateGreaterThanEqual(departureDate, arrivalDate)) {
+            return false;
+        }
+
+        List<BookingEntity> bookingEntityIterable = bookingsRepository
+                .findBookingEntitiesByDepartureDateLessThanEqualAndArrivalDateGreaterThanEqual(futureTwoDate, pastTwoDate);
+
+        if (bookingEntityIterable.isEmpty()) {
+            return true;
+        } else {
+
+            HashSet<Boolean> isSlotsEmpty = new HashSet<>();
+
+            for (BookingEntity bookingEntity : bookingEntityIterable) {
+
+                LocalDate bookedArrivalDate = bookingEntity.getArrivalDate();
+                LocalDate bookedDepartureDate = bookingEntity.getDepartureDate();
+
+                isSlotsEmpty.add(arrivalDate.isAfter(bookedDepartureDate) || departureDate.isBefore(bookedArrivalDate));
+            }
+
+            return !isSlotsEmpty.contains(false);
         }
     }
 
     private String save(BookingModel bookingModel) {
+
         String uuid = UUID.randomUUID().toString();
 
         BookingEntity bookingEntity = new BookingEntity();

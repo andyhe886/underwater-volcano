@@ -3,8 +3,6 @@ package com.upgrade.underwatervolcano.demo.service.impl;
 import com.upgrade.underwatervolcano.demo.database.entity.BookingEntity;
 import com.upgrade.underwatervolcano.demo.database.repository.BookingsRepository;
 import com.upgrade.underwatervolcano.demo.service.AvailabilityService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,7 +14,6 @@ import java.util.stream.Stream;
 
 @Service
 public class AvailabilityServiceImpl implements AvailabilityService {
-    private static final Logger logger = LoggerFactory.getLogger(AvailabilityServiceImpl.class);
 
     private BookingsRepository bookingsRepository;
 
@@ -25,8 +22,6 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     public List<String> listOfDefaultAvailabilities() {
-
-        logger.info("Getting all the available dates from current dates");
 
         LocalDate currentDate = LocalDate.now();
         LocalDate endDate = currentDate.plusMonths(1);
@@ -37,8 +32,6 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     public List<String> listOfSearchAvailabilities(LocalDate startDate, LocalDate endDate) {
-
-        logger.info("Getting all the available dates from start to end dates");
 
         List<LocalDate> listOfDatesBooked = searchListOfDatesBooked(startDate, endDate);
 

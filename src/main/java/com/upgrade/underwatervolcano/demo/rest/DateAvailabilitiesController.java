@@ -4,7 +4,7 @@ import com.upgrade.underwatervolcano.demo.service.AvailabilityService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import util.DataValidatorUtil;
+import com.upgrade.underwatervolcano.demo.util.DataValidatorUtil;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,7 +29,7 @@ public class DateAvailabilitiesController {
             @RequestParam(value = "startDate") String startDate,
             @RequestParam(value = "endDate") String endDate) {
 
-        DataValidatorUtil.validation(startDate, endDate);
+        DataValidatorUtil.retrieveValidation(startDate, endDate);
 
         List<String> listDates = availabilityService.listOfSearchAvailabilities(
                 LocalDate.parse(startDate), LocalDate.parse(endDate)
