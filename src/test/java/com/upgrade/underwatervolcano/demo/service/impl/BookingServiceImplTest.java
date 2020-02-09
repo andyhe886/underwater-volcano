@@ -100,7 +100,7 @@ public class BookingServiceImplTest {
         requestModifyBookingModel.setUuid(uuid);
 
         TimeUnit.SECONDS.sleep(1) ;
-        TimeUnit.MILLISECONDS.sleep(50);
+        TimeUnit.MILLISECONDS.sleep(5);
 
         requestModifyBookingModel.setUuid(uuid);
 
@@ -123,7 +123,7 @@ public class BookingServiceImplTest {
     void deleteBooking_shouldThrowException() throws InterruptedException {
 
         TimeUnit.SECONDS.sleep(4);
-        TimeUnit.MILLISECONDS.sleep(50);
+        TimeUnit.MILLISECONDS.sleep(5);
         Assertions.assertThrows(IllegalStateException.class, () -> {
             bookingService.deleteBooking(uuid);
         });
