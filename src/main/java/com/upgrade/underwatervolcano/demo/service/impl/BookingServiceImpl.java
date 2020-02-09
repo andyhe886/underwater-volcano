@@ -5,6 +5,7 @@ import com.upgrade.underwatervolcano.demo.database.repository.BookingsRepository
 import com.upgrade.underwatervolcano.demo.model.BookingModel;
 import com.upgrade.underwatervolcano.demo.model.request.RequestModifyBookingModel;
 import com.upgrade.underwatervolcano.demo.service.BookingService;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -27,10 +28,9 @@ public class BookingServiceImpl implements BookingService {
         LocalDate arrivalDate = bookingModel.getArrivalDate();
         LocalDate departureDate = bookingModel.getDepartureDate();
 
-        String uuid;
+        String uuid = "";
 
         synchronized (this) {
-
             try {
                 boolean isSlotsEmpty = isSlotsEmpty(arrivalDate, departureDate);
 
@@ -48,49 +48,28 @@ public class BookingServiceImpl implements BookingService {
         return uuid;
     }
 
-    @Transactional
     public void modifyBooking(RequestModifyBookingModel requestModifyBookingModel) {
-        LocalDate arrivalDate = LocalDate.parse(requestModifyBookingModel.getArrivalDate());
-        LocalDate departureDate = LocalDate.parse(requestModifyBookingModel.getDepartureDate());
-
         try {
+            LocalDate arrivalDate = LocalDate.parse(requestModifyBookingModel.getArrivalDate());
+            LocalDate departureDate = LocalDate.parse(requestModifyBookingModel.getDepartureDate());
+
             boolean isSlotsEmpty = isSlotsEmpty(arrivalDate, departureDate);
 
             if (isSlotsEmpty) {
-                String uuid = requestModifyBookingModel.getUuid();
-                BookingEntity bookingEntity = bookingsRepository.findBookingEntitiesByBookingUUID(uuid);
-
-                if (bookingEntity != null) {
-                    bookingEntity.setFullName(requestModifyBookingModel.getFullName());
-                    bookingEntity.setEmail(requestModifyBookingModel.getEmail());
-                    bookingEntity.setArrivalDate(arrivalDate);
-                    bookingEntity.setDepartureDate(departureDate);
-                    bookingsRepository.save(bookingEntity);
-                } else {
-                    throw new IllegalArgumentException("The booking do not exist");
-                }
-
+                update(requestModifyBookingModel);
             } else {
                 throw new IllegalArgumentException("It's already booked, please choose another date(s)");
             }
-
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e);
+        } catch (DataAccessException e) {
+            throw new IllegalStateException(e);
         }
     }
 
-    @Transactional
     public void deleteBooking(String uuid) {
         try {
-            BookingEntity bookingEntity = bookingsRepository.findBookingEntitiesByBookingUUID(uuid);
-
-            if (bookingEntity != null) {
-                bookingsRepository.deleteBookingEntityByBookingUUID(uuid);
-            } else {
-                throw new IllegalArgumentException("The booking do not exist");
-            }
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e);
+            delete(uuid);
+        } catch (DataAccessException e) {
+            throw new IllegalStateException(e);
         }
     }
 
@@ -138,5 +117,34 @@ public class BookingServiceImpl implements BookingService {
 
         bookingEntity = bookingsRepository.findBookingEntitiesByBookingUUID(uuid);
         return bookingEntity.getBookingUUID();
+    }
+
+    @Transactional
+    void update(RequestModifyBookingModel requestModifyBookingModel) {
+
+        String uuid = requestModifyBookingModel.getUuid();
+        BookingEntity bookingEntity = bookingsRepository.findBookingEntitiesByBookingUUID(uuid);
+
+        if (bookingEntity != null) {
+            bookingEntity.setFullName(requestModifyBookingModel.getFullName());
+            bookingEntity.setEmail(requestModifyBookingModel.getEmail());
+            bookingEntity.setArrivalDate(LocalDate.parse(requestModifyBookingModel.getArrivalDate()));
+            bookingEntity.setDepartureDate(LocalDate.parse(requestModifyBookingModel.getDepartureDate()));
+            bookingsRepository.save(bookingEntity);
+        } else {
+            throw new IllegalArgumentException("The booking do not exist");
+        }
+
+    }
+
+    @Transactional
+    void delete(String uuid) {
+        BookingEntity bookingEntity = bookingsRepository.findBookingEntitiesByBookingUUID(uuid);
+
+        if (bookingEntity != null) {
+            bookingsRepository.delete(bookingEntity);
+        } else {
+            throw new IllegalArgumentException("The booking do not exist");
+        }
     }
 }

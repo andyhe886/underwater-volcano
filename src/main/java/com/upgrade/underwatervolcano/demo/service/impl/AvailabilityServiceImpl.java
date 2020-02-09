@@ -22,7 +22,6 @@ public class AvailabilityServiceImpl implements AvailabilityService {
     }
 
     public List<String> listOfDefaultAvailabilities() {
-
         LocalDate currentDate = LocalDate.now();
         LocalDate endDate = currentDate.plusMonths(1);
 
@@ -71,4 +70,5 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                 .collect(Collectors.toList());
 
     }
+
 }

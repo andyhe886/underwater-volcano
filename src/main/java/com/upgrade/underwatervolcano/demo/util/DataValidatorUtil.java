@@ -47,8 +47,6 @@ public class DataValidatorUtil {
             throw new IllegalArgumentException("3 days maximum");
         } else if(LocalDate.now().isEqual(startDate)) {
             throw new IllegalArgumentException("You must book 1 day(s) ahead of current day");
-        } else if(startDate.isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("You can only book after: " + LocalDate.now());
         }
     }
 
