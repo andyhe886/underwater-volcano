@@ -1,7 +1,7 @@
 # underwater-volcano
 ## General Info
 
-A web rest API to book campsite.
+A web rest API to book a single campsite per booking.
 
 ## Plugins that I use
 | Plugin | README |
@@ -30,9 +30,9 @@ mvn spring-boot:run
 ## Implementation 
 ### Rest endpoints
 
-- GET /default-date-availabilities : It's use to retrieve current date up to 1 month
-- GET /search-date-availabilities?endDate=?&startDate=? : It's use to retrieve start date to end date, somehow swagger switch the position, it should be startDate=?&endDate=?
-- POST /create-booking : It's use to create booking
+- GET /default-date-availabilities : It's used to retrieve current date up to 1 month
+- GET /search-date-availabilities?endDate=?&startDate=? : It's used to retrieve start date to end date, somehow swagger switch the position, it should be startDate=?&endDate=?
+- POST /create-booking : It's used to create a booking
 ```
 {
   "arrivalDate": "string",
@@ -70,19 +70,22 @@ It will check the following conditions with the method (isSlotsEmpty()):
 - Check if there are exactly the same booking dates exist.
 - Retrieve all the bookings between (startDate - 2days) and (endDate + 2days) with the same query that we used in the /search-date-availabilities. 
 If it's empty, the date(s) are available. 
-If there are reserved date(s). it will check the if arrival date is after booked departure date or departure date is before booked arrival date. 
+If there are reserved date(s). it will check if the arrival date is after the booked departure date or departure date is before the booked arrival date. 
 
-For the POST /modify-booking, it's using @Transactional, if multiple users attempts to modify the booking at the same time. it will save one of them, the other one will be rollback to his previous state.
-It will also check if slots are empty before update.
+For the POST /modify-booking, it's using @Transactional, if multiple users attempt to modify the booking at the same time. it will save one of them, the other one will be a rollback to his previous state.
+It will also check if slots are empty before the update.
 
 For the POST /delete-booking, it's using @Transactional too same reason as /modify-booking to delete the booking.
 
 ### Constraints
-All the checks, It's throws with IllegalArgumentException and IllegalStateException.
-
+- All the checks, It's thrown with IllegalArgumentException(message) and IllegalStateException(message).
+- All the Dates related checks are in util/DataValidatorUtil.
 ### Integration test
 There's an integration test to test the flow (Search dates availabilities) and (Create, modify and delete).
 There's another concurrent test to test the (create, modify and delete).
+
+### To consider
+It could implement a @ControllerAdvice to better catch the error(s) to return a more specific error and http status code.
 
 ### [Lombok]
 To be able to use Lombok locally in IntelliJ, you will need to install it.
@@ -92,7 +95,5 @@ To be able to use Lombok locally in IntelliJ, you will need to install it.
  * Search for Lombok Plugin
  * Click on Install plugin
  * Restart IntelliJ IDEA
-
- 
 
    [Lombok]: <https://github.com/rzwitserloot/lombok>
